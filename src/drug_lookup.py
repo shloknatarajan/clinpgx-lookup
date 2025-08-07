@@ -2,6 +2,24 @@ import csv
 import os
 from typing import Optional, Tuple
 from difflib import SequenceMatcher
+from pydantic import BaseModel
+"""
+Goal: drug name: str --> best matching accession id: str
+
+Input:
+- drug name: str
+- threshold: float
+- top_k: int
+Output:
+- top_k accession ids: list[str]
+- top_k similarity scores: list[float]
+"""
+
+class DrugLookupResponse(BaseModel):
+    name: str
+    generic_names: list[str]
+    accession_id: str
+    similarity_score: float
 
 # Increase CSV field size limit to handle large fields
 csv.field_size_limit(1000000)
