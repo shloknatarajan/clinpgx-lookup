@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clinpgx-term-lookup"
+version = "0.1.0"
+description = "Fuzzy term lookup for ClinPGx-like TSVs: drugs, genes, variants, phenotypes"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+  { name = "Shlok Natarajan", email = "shlok.natarajan@gmail.com" },
+]
+dependencies = [
+  "pandas>=2.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/"  # update with repo URL if desired
+
+[project.scripts]
+clinpgx-lookup = "clinpgx_lookup.term_lookup:main"
+clinpgx-setup = "clinpgx_lookup.setup_data:main"
+clinpgx-check-data = "clinpgx_lookup.check_data:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["clinpgx_lookup*"]
