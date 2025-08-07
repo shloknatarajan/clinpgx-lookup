@@ -1,0 +1,15 @@
+# Pixi
+.pixi
+*.egg-info
+
+# Python
+__pycache__
+
+# OS
+.DS_Store
+
+# Claude
+.claude
+
+# Environments
+.env
