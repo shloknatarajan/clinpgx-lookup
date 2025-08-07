@@ -21,7 +21,7 @@ This package ships without data to keep the wheel small and avoid licensing issu
 Steps for Option B:
 
 1) Install the package (after publishing):
-   - `pip install clinpgx-term-lookup`
+   - `pip install clinpgx-lookup`
 
 2) Prepare data once (copies TSVs to `~/.cache/clinpgx_lookup/data`):
    - If you have the repo locally:
