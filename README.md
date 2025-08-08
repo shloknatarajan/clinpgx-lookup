@@ -43,8 +43,39 @@ Examples
   - `clinpgx-lookup drug "fluoxetine" 0.7 10`
 - Programmatic usage:
   - `from clinpgx_lookup import ClinPGxTermLookup`
-  - `ids, scores = ClinPGxTermLookup().search("drug", "abacavir", threshold=0.75, top_k=3)`
+  - `matches = ClinPGxTermLookup().search("drug", "abacavir", threshold=0.75, top_k=3)`
 
 Advanced
 - Set `CLINPGX_DATA_DIR` to use a shared read-only data path without copying.
 - Set `CLINPGX_CACHE_DIR` to control where pickle indices and copied TSVs are stored.
+
+## Install via Conda / Pixi
+
+- Conda (users): `conda install -c conda-forge -c shloknatarajan clinpgx-lookup`
+- Pixi (users): add channel then add package
+  - In `pixi.toml`: `channels = ["conda-forge", "shloknatarajan"]`
+  - Install: `pixi add clinpgx-lookup`
+
+## Release (publish to Anaconda.org)
+
+This repo includes a minimal conda recipe at `conda.recipe/meta.yaml`. Build and upload using Pixi tasks:
+
+Prerequisites (one-time):
+- `pixi global install conda-build anaconda-client`
+- Create an Anaconda.org token (Settings → Access), then export it:
+  - `export ANACONDA_API_TOKEN=<your_token>`
+
+Build (optional: set a release version):
+- Optionally set `PKG_VERSION` (falls back to `0.1.0`):
+  - `export PKG_VERSION=0.1.1`
+- Build the package:
+  - `pixi run build-conda`
+- See the artifact path:
+  - `pixi run build-conda-output`
+
+Upload to Anaconda.org (user: `shloknatarajan`):
+- `pixi run upload-conda`
+
+Verify from a fresh environment:
+- `conda create -n test-clinpgx -c conda-forge -c shloknatarajan clinpgx-lookup`
+- `conda activate test-clinpgx && clinpgx-lookup --help`

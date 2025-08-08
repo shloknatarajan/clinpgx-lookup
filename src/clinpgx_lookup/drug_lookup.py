@@ -43,13 +43,14 @@ def lookup_drug_ids(
     threshold: float = 0.6,
     top_k: int = 5,
     index: NameIndex | None = None,
-) -> Tuple[List[str], List[float]]:
+) -> Tuple[List[str], List[str], List[float]]:
     if index is None:
         index = _load_index()
-    return lookup_ids(drug_name, index=index, threshold=threshold, top_k=top_k)
+    ids, matched_names, scores = lookup_ids(drug_name, index=index, threshold=threshold, top_k=top_k)
+    return ids, matched_names, scores
 
 
-def drug_lookup(drug_name: str, threshold: float, top_k: int) -> Tuple[List[str], List[float]]:
+def drug_lookup(drug_name: str, threshold: float, top_k: int) -> Tuple[List[str], List[str], List[float]]:
     return lookup_drug_ids(drug_name, threshold=threshold, top_k=top_k)
 
 
@@ -71,9 +72,9 @@ def main() -> None:
         threshold = 0.6
         top_k = 5
 
-    ids, scores = lookup_drug_ids(name, threshold=threshold, top_k=top_k)
-    for acc, sc in zip(ids, scores):
-        print(f"{acc}\t{sc:.3f}")
+    ids, matched_names, scores = lookup_drug_ids(name, threshold=threshold, top_k=top_k)
+    for acc, name, sc in zip(ids, matched_names, scores):
+        print(f"{acc}\t{name}\t{sc:.3f}")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@ import argparse
 import sys
 from importlib.resources import files
 
+from .data_validation import validate_data_directory, print_validation_summary
+
 
 REQUIRED = {
     # Paths are relative to the "data" root for external dirs
@@ -109,9 +111,43 @@ def check_layout(source: Optional[str] = None) -> Tuple[bool, List[str]]:
 def main(argv: Optional[List[str]] = None) -> None:
     p = argparse.ArgumentParser(description="Check availability and layout of ClinPGx TSV data")
     p.add_argument("--source", help="Path to a data directory containing drugs/ genes/ variants/ phenotypes/", default=None)
+    p.add_argument("--validate", action="store_true", help="Perform detailed data validation")
     args = p.parse_args(argv)
+    
+    # Basic layout check
     ok, msgs = check_layout(args.source)
     print("\n".join(msgs))
+    
+    # If layout is valid and user requested validation, perform detailed checks
+    if ok and args.validate:
+        print("\n" + "="*60)
+        print("DETAILED DATA VALIDATION")
+        print("="*60)
+        
+        # Find the valid data directory
+        for loc in _locations(args.source):
+            all_valid = True
+            for key, (rel, expected) in REQUIRED.items():
+                if loc.base is None:
+                    continue  # Skip package resources for validation
+                p = loc.base / rel
+                if not (p.exists() and _header_ok(p, expected)):
+                    all_valid = False
+                    break
+            if all_valid:
+                # Found valid data directory, run validation
+                validation_results = validate_data_directory(loc.base)
+                print_validation_summary(validation_results)
+                
+                # Check if any validation failed
+                validation_ok = all(r.is_valid for r in validation_results.values())
+                if not validation_ok:
+                    print("❌ Data validation found issues!")
+                    raise SystemExit(1)
+                else:
+                    print("✅ All data validation checks passed!")
+                break
+    
     if not ok:
         print()
         print("To prepare data in your cache, run:")

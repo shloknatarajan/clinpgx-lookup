@@ -33,13 +33,14 @@ def lookup_variant_ids(
     threshold: float = 0.6,
     top_k: int = 5,
     index: NameIndex | None = None,
-) -> Tuple[List[str], List[float]]:
+) -> Tuple[List[str], List[str], List[float]]:
     if index is None:
         index = _load_index()
-    return lookup_ids(variant_term, index=index, threshold=threshold, top_k=top_k)
+    ids, matched_names, scores = lookup_ids(variant_term, index=index, threshold=threshold, top_k=top_k)
+    return ids, matched_names, scores
 
 
-def variant_lookup(variant_term: str, threshold: float, top_k: int) -> Tuple[List[str], List[float]]:
+def variant_lookup(variant_term: str, threshold: float, top_k: int) -> Tuple[List[str], List[str], List[float]]:
     return lookup_variant_ids(variant_term, threshold=threshold, top_k=top_k)
 
 
@@ -58,9 +59,9 @@ def main() -> None:
     except Exception:
         threshold = 0.6
         top_k = 5
-    ids, scores = lookup_variant_ids(term, threshold=threshold, top_k=top_k)
-    for acc, sc in zip(ids, scores):
-        print(f"{acc}\t{sc:.3f}")
+    ids, matched_names, scores = lookup_variant_ids(term, threshold=threshold, top_k=top_k)
+    for acc, name, sc in zip(ids, matched_names, scores):
+        print(f"{acc}\t{name}\t{sc:.3f}")
 
 
 if __name__ == "__main__":

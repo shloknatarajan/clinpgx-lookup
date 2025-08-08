@@ -13,10 +13,12 @@ authors = [
 ]
 dependencies = [
   "pandas>=2.3",
+  "pydantic>=2.11.7",
+  "tqdm>=4.60.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/shloknatarajan/clinpgx-lookup"  # update with repo URL if desired
+Homepage = "https://github.com/shloknatarajan/clinpgx-lookup"
 
 [project.scripts]
 clinpgx-lookup = "clinpgx_lookup.term_lookup:main"
