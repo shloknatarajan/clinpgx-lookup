@@ -26,7 +26,7 @@ def general_search(df: pd.DataFrame, query: str, column_name: str, id_column: st
             continue
             
         text = str(row[column_name]).lower().strip()
-        similarity = SequenceMatcher(None, query_lower, text).ratio()
+        similarity = calc_similarity(query_lower, text)
         
         if similarity >= threshold:
             row_dict = row.to_dict()
@@ -37,5 +37,6 @@ def general_search(df: pd.DataFrame, query: str, column_name: str, id_column: st
     
     matches.sort(key=lambda x: x['score'], reverse=True)
     return matches
-
     
+def calc_similarity(query: str, text: str) -> float:
+    return SequenceMatcher(None, query.lower().strip(), text.lower().strip()).ratio()

@@ -11,71 +11,70 @@ You can choose whether or not this is a gene, drug, variant, phenotype, etc.
 - Should maybe be able to search through the synonym list as well
 - Convert the files to pkl for better loading/storing
 
-## Install and Data Setup
+## Steps
+1. Highly prioritize drug and allele/variant lookup
+2. Rough plan for fallback mechanisms for both
+3. Implementation
+4. Package up into API
+5. Publish and use
 
-This package ships without data to keep the wheel small and avoid licensing issues. You have two easy options:
+## Drugs
+- Search through the Name column for similarity
+- If no good maches, parse and search through generic names (also in pharmgkb table)
+    - For parsing through generic names, remove the non text data and stuff in brackets
+- Keep the columns ID, Name, Generic Names, Score
+- Need to turn the ID into a URL and add that to the DrugRecord object.
+- Fallback 1: RxNorm
+- Use approximateTerm endpoint to get top results .
 
-- Option A: Use a local `data/` folder (dev) — keep the repo's `data/` in place and run lookups directly.
-- Option B: Copy TSVs into your user cache so everything works offline after install.
+Arian's RxNorm Approach:
+```
+def get_rxcui(drug_name):
+    url = "https://rxnav.nlm.nih.gov/REST/approximateTerm.json"
+    params = {"term": drug_name, "maxEntries": 1}
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            candidates = data.get('approximateGroup', {}).get('candidate', [])
+            if candidates:
+                return candidates[0]['rxcui']
+    except:
+        pass
+    return None
 
-Steps for Option B:
+def get_normalized_name(rxcui):
+    if rxcui is None:
+        return None
+    url = f"https://rxnav.nlm.nih.gov/REST/rxcui/{rxcui}/properties.json"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('properties', {}).get('name', None)
+    except:
+        pass
+    return None
 
-1) Install the package (after publishing):
-   - `pip install clinpgx-lookup`
+def normalize_drug(drug_name):
+    rxcui = get_rxcui(drug_name)
+    return get_normalized_name(rxcui)
 
-2) Prepare data once (copies TSVs to `~/.cache/clinpgx_lookup/data`):
-   - If you have the repo locally:
-     - `clinpgx-setup --source /path/to/repo/data`
-   - Or, if your TSVs live elsewhere, point `--source` at the folder that contains `drugs/`, `genes/`, `variants/`, `phenotypes/`.
+# Create mapping dictionary
+mapping = {}
+for drug in tqdm(unique_drugs, desc="Normalizing unique drug parts"):
+    normalized = normalize_drug(drug)
+    mapping[drug] = normalized
+```
 
-3) Validate data layout (optional but recommended):
-   - `clinpgx-check-data --source /path/to/repo/data`
-   - Once cached, simply run: `clinpgx-check-data` (it will find `~/.cache/clinpgx_lookup/data`)
+## Alleles
+- For RSIDs:
+    - Search through the pharmgkb list for rsID under 'Variant Name' column
+    - There are synonyms but let's save that for later
+    - If it doesn't show up there try tmVar3
+- if that 
 
-4) Run lookups:
-   - `clinpgx-lookup drug "abacavir"`
-   - `clinpgx-lookup gene CYP2D6`
-   - `clinpgx-lookup phenotype neutropenia`
-   - `clinpgx-lookup variant rs10046`
-
-Examples
-- Change similarity threshold and number of results:
-  - `clinpgx-lookup drug "fluoxetine" 0.7 10`
-- Programmatic usage:
-  - `from clinpgx_lookup import ClinPGxTermLookup`
-  - `matches = ClinPGxTermLookup().search("drug", "abacavir", threshold=0.75, top_k=3)`
-
-Advanced
-- Set `CLINPGX_DATA_DIR` to use a shared read-only data path without copying.
-- Set `CLINPGX_CACHE_DIR` to control where pickle indices and copied TSVs are stored.
-
-## Install via Conda / Pixi
-
-- Conda (users): `conda install -c conda-forge -c shloknatarajan clinpgx-lookup`
-- Pixi (users): add channel then add package
-  - In `pixi.toml`: `channels = ["conda-forge", "shloknatarajan"]`
-  - Install: `pixi add clinpgx-lookup`
-
-## Release (publish to Anaconda.org)
-
-This repo includes a minimal conda recipe at `conda.recipe/meta.yaml`. Build and upload using Pixi tasks:
-
-Prerequisites (one-time):
-- `pixi global install conda-build anaconda-client`
-- Create an Anaconda.org token (Settings → Access), then export it:
-  - `export ANACONDA_API_TOKEN=<your_token>`
-
-Build (optional: set a release version):
-- Optionally set `PKG_VERSION` (falls back to `0.1.0`):
-  - `export PKG_VERSION=0.1.1`
-- Build the package:
-  - `pixi run build-conda`
-- See the artifact path:
-  - `pixi run build-conda-output`
-
-Upload to Anaconda.org (user: `shloknatarajan`):
-- `pixi run upload-conda`
-
-Verify from a fresh environment:
-- `conda create -n test-clinpgx -c conda-forge -c shloknatarajan clinpgx-lookup`
-- `conda activate test-clinpgx && clinpgx-lookup --help`
+## Questions
+- If you use one of the APIs, can you fuzzy search?
+- Is fuzzy search important? 
+    - Seems like it would be for drugs but for alleles/genes not sure
