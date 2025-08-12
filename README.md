@@ -25,54 +25,18 @@ You can choose whether or not this is a gene, drug, variant, phenotype, etc.
 - Keep the columns ID, Name, Generic Names, Score
 - Need to turn the ID into a URL and add that to the DrugRecord object.
 - Fallback 1: RxNorm
-- Use approximateTerm endpoint to get top results .
-
-Arian's RxNorm Approach:
-```
-def get_rxcui(drug_name):
-    url = "https://rxnav.nlm.nih.gov/REST/approximateTerm.json"
-    params = {"term": drug_name, "maxEntries": 1}
-    try:
-        response = requests.get(url, params=params, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            candidates = data.get('approximateGroup', {}).get('candidate', [])
-            if candidates:
-                return candidates[0]['rxcui']
-    except:
-        pass
-    return None
-
-def get_normalized_name(rxcui):
-    if rxcui is None:
-        return None
-    url = f"https://rxnav.nlm.nih.gov/REST/rxcui/{rxcui}/properties.json"
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('properties', {}).get('name', None)
-    except:
-        pass
-    return None
-
-def normalize_drug(drug_name):
-    rxcui = get_rxcui(drug_name)
-    return get_normalized_name(rxcui)
-
-# Create mapping dictionary
-mapping = {}
-for drug in tqdm(unique_drugs, desc="Normalizing unique drug parts"):
-    normalized = normalize_drug(drug)
-    mapping[drug] = normalized
-```
+- Use approximateTerm endpoint to get top results.
 
 ## Alleles
 - For RSIDs:
     - Search through the pharmgkb list for rsID under 'Variant Name' column
     - There are synonyms but let's save that for later
     - If it doesn't show up there try tmVar3
-- if that 
+- For Star Alleles:
+    - Try the pharmgkb api
+    - Try the tmVar3 api
+    - Sort by score but prefer pharmgkb api
+
 
 ## Questions
 - If you use one of the APIs, can you fuzzy search?
