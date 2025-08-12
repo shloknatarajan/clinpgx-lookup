@@ -36,6 +36,9 @@ You can choose whether or not this is a gene, drug, variant, phenotype, etc.
     - Try the pharmgkb api
     - Try the tmVar3 api
     - Sort by score but prefer pharmgkb api
+- Problem
+    - The pharmgkb api doesn't fuzzy search for aliases. For example, UGT1A9*22 is not found but it is a known
+    alias for [rs3832043](https://www.clinpgx.org/variant/PA166155718).
 
 
 ## Questions
